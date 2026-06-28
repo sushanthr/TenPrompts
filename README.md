@@ -1,9 +1,11 @@
 # On-Device AI Studio — 10 Prompt API Concepts
 
-A client-facing portfolio of **10 distinct web apps** built on the browser's built-in
+A portfolio of **10 distinct web apps** built on the browser's built-in
 **Prompt API** (`window.LanguageModel` / Gemini Nano) — a local language model that runs
 entirely on the user's device. No servers, no API keys, no per-token cost, and **no data
 ever leaves the browser**.
+
+https://sushanthr.github.io/TenPrompts/
 
 ## Run it
 

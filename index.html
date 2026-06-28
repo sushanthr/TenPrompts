@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>On-Device AI — 10 Prompt API Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#05060c;--ink:#eef1fb;--muted:#9aa3c4;--line:#1a2138;--panel:#0c1022}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;overflow-x:hidden}
+  /* animated aurora background */
+  .aurora{position:fixed;inset:0;z-index:0;filter:blur(60px);opacity:.55;pointer-events:none}
+  .aurora span{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:float 18s ease-in-out infinite}
+  .a1{width:520px;height:520px;background:#7c5cff;top:-120px;left:-80px}
+  .a2{width:460px;height:460px;background:#ff5cb8;top:10%;right:-100px;animation-delay:-4s}
+  .a3{width:480px;height:480px;background:#2ee6c5;bottom:-140px;left:20%;animation-delay:-8s}
+  .a4{width:380px;height:380px;background:#ff7a18;bottom:5%;right:15%;animation-delay:-12s}
+  @keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-30px) scale(1.08)}66%{transform:translate(-30px,20px) scale(.95)}}
+  .wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:34px 24px 90px}
+  .nav{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#7c5cff,#2ee6c5);display:grid;place-items:center;font-family:"Sora";font-weight:800;color:#06121f;font-size:20px}
+  .brand b{font-family:"Sora";font-weight:800;font-size:18px;display:block;line-height:1.1}
+  .brand small{color:var(--muted);font-size:12px;letter-spacing:1px}
+  .pill{font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:8px 15px;background:#ffffff06;backdrop-filter:blur(8px)}
+  .hero{text-align:center;margin:74px 0 12px}
+  .kicker{display:inline-block;font-family:"Sora";font-size:13px;letter-spacing:3px;text-transform:uppercase;color:#2ee6c5;border:1px solid #2ee6c533;border-radius:999px;padding:7px 16px;margin-bottom:24px}
+  .hero h1{font-family:"Sora";font-weight:800;font-size:clamp(44px,8vw,92px);line-height:.96;margin:0 0 22px;letter-spacing:-2px}
+  .hero h1 span{background:linear-gradient(110deg,#fff 5%,#7c5cff 35%,#ff5cb8 60%,#2ee6c5 90%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:20px;color:var(--muted);max-width:64ch;margin:0 auto;line-height:1.55}
+  .why{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:34px 0 0}
+  .why .b{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--ink);background:#ffffff08;border:1px solid var(--line);border-radius:999px;padding:9px 16px;backdrop-filter:blur(8px)}
+  .why .b i{font-style:normal}
+  .section-h{display:flex;align-items:baseline;justify-content:space-between;margin:72px 0 22px;flex-wrap:wrap;gap:8px}
+  .section-h h2{font-family:"Sora";font-weight:700;font-size:28px;margin:0}
+  .section-h span{color:var(--muted);font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:20px}
+  .card{position:relative;display:block;text-decoration:none;color:inherit;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:24px;overflow:hidden;transition:.25s;isolation:isolate}
+  .card:before{content:"";position:absolute;inset:0;z-index:-1;opacity:.0;transition:.25s;background:radial-gradient(420px 220px at 100% 0,var(--c1),transparent 60%),radial-gradient(360px 220px at 0 100%,var(--c2),transparent 60%)}
+  .card:hover{transform:translateY(-6px);border-color:#ffffff2a}
+  .card:hover:before{opacity:.30}
+  .num{font-family:"Sora";font-weight:800;font-size:14px;color:var(--muted)}
+  .ico{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:25px;margin:14px 0 16px;background:linear-gradient(135deg,var(--c1),var(--c2));box-shadow:0 12px 30px -14px var(--c1)}
+  .card h3{font-family:"Sora";font-weight:700;font-size:22px;margin:0 0 4px}
+  .tag{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-family:"Sora"}
+  .card p{font-size:15px;line-height:1.55;color:var(--muted);margin:12px 0 16px}
+  .feat{font-size:13px;color:var(--ink);background:#ffffff0a;border:1px solid var(--line);border-radius:8px;padding:8px 11px;line-height:1.4}
+  .open{margin-top:16px;font-family:"Sora";font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:7px;color:#fff}
+  .open .arrow{transition:.2s}.card:hover .open .arrow{transform:translateX(4px)}
+  .how{margin-top:80px;background:var(--panel);border:1px solid var(--line);border-radius:24px;padding:34px}
+  .how h2{font-family:"Sora";font-weight:700;font-size:26px;margin:0 0 8px}
+  .how>p{color:var(--muted);max-width:70ch;line-height:1.6}
+  pre{background:#06080f;border:1px solid var(--line);border-radius:14px;padding:18px;overflow:auto;font-family:"SF Mono",Consolas,monospace;font-size:13px;line-height:1.7;color:#cfe3ff;margin:18px 0 0}
+  pre .k{color:#ff5cb8}.pre .s{color:#2ee6c5}
+  .cmt{color:#5d6a93}
+  .note{display:flex;gap:12px;align-items:flex-start;margin-top:20px;background:#2ee6c50d;border:1px solid #2ee6c533;border-radius:14px;padding:16px}
+  .note .em{font-size:20px}
+  .note p{margin:0;font-size:14px;line-height:1.55;color:var(--ink)}
+  footer{margin-top:60px;text-align:center;color:var(--muted);font-size:14px;line-height:1.8}
+  footer a{color:#2ee6c5;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="aurora"><span class="a1"></span><span class="a2"></span><span class="a3"></span><span class="a4"></span></div>
+
+<div class="wrap">
+  <div class="nav">
+    <div class="brand">
+      <div class="logo">◎</div>
+      <div><b>On-Device AI Studio</b><small>Built on the browser Prompt API</small></div>
+    </div>
+    <div class="pill" id="env">Checking your browser…</div>
+  </div>
+
+  <header class="hero">
+    <div class="kicker">10 production-ready concepts</div>
+    <h1>AI that never<br><span>leaves the browser.</span></h1>
+    <p>A new browser API runs a real language model <strong>locally on the user's device</strong> — no servers, no API keys, no per-token bills, and crucially, no data ever uploaded. Here are ten products that this unlocks. Each one is live below.</p>
+    <div class="why">
+      <div class="b"><i>🔒</i> Fully private</div>
+      <div class="b"><i>⚡</i> Instant, no round-trip</div>
+      <div class="b"><i>✈️</i> Works offline</div>
+      <div class="b"><i>💸</i> Zero per-call cost</div>
+      <div class="b"><i>🔑</i> No API keys</div>
+    </div>
+  </header>
+
+  <div class="section-h">
+    <h2>The portfolio</h2>
+    <span>Click any card to open the live demo →</span>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <section class="how">
+    <h2>How it works under the hood</h2>
+    <p>Every demo shares one tiny wrapper around the browser's built-in <code>LanguageModel</code> API — the same pattern shown in the reference implementation. Feature-detect, create a session, stream the response token by token.</p>
+<pre><span class="cmt">// the real Prompt API — mirrored across all 10 demos</span>
+const lm = window.LanguageModel;
+const status = await lm.<span class="k">availability</span>();        <span class="cmt">// 'available' | 'downloadable' | …</span>
+
+const session = await lm.<span class="k">create</span>({
+  initialPrompts: [{ role: <span class="k">'system'</span>, content: systemPrompt }],
+  temperature: 0.4, topK: 3,
+  monitor(m){ m.addEventListener(<span class="k">'downloadprogress'</span>, e =&gt; show(e.loaded/e.total)); }
+});
+
+const stream = session.<span class="k">promptStreaming</span>(userText, { responseConstraint: schema });
+for await (const chunk of stream) { output += chunk; render(output); }</pre>
+    <div class="note">
+      <span class="em">💡</span>
+      <p><strong>About "Demo mode":</strong> these demos run the real on-device model when your browser supports it (Chrome with the built-in AI / Prompt API enabled). On any other browser they automatically fall back to a faithful <em>simulated</em> stream so you can still experience the full UX — each page shows a badge telling you which mode it's in. Nothing is ever sent to a server in either case.</p>
+    </div>
+  </section>
+
+  <footer>
+    Built as a concept portfolio for the browser <strong>Prompt API</strong>.<br>
+    API reference: <a href="https://sushanthr.github.io/PromptAPI/" target="_blank" rel="noopener">sushanthr.github.io/PromptAPI</a>
+  </footer>
+</div>
+
+<script src="assets/llm.js"></script>
+<script>
+  const PROJECTS=[
+    {n:"01",dir:"01-inkwell",ico:"📖",name:"Inkwell",tag:"Private journal",c1:"#c9a227",c2:"#c2576b",
+      desc:"A reflective journal that surfaces gentle prompts, names your moods, and writes weekly summaries — every word stays on your device.",
+      feat:"Why local: people only write honestly in a journal they truly trust."},
+    {n:"02",dir:"02-glimmer",ico:"✦",name:"Glimmer",tag:"Inline writing assist",c1:"#ff2d92",c2:"#9b5cff",
+      desc:"A drop-in upgrade for any text box: rephrase, shorten, fix tone — generated in milliseconds with no spinner and no API bill.",
+      feat:"Why local: free per-call means you can offer it to every user, not a paid tier."},
+    {n:"03",dir:"03-recall",ico:"🔎",name:"Recall",tag:"Ask your notes",c1:"#2ee6c5",c2:"#3b82f6",
+      desc:"Natural-language Q&A over your own notes, answered with citations — a lifetime of private data never leaves the machine.",
+      feat:"Why local: search that understands intent without uploading your life."},
+    {n:"04",dir:"04-plainspeak",ico:"🗣️",name:"PlainSpeak",tag:"Readability adapter",c1:"#10b981",c2:"#059669",
+      desc:"Rewrites legalese, medical jargon, and forms into plain language at any reading level. Great for ESL and accessibility.",
+      feat:"Why local: works on private bank, health & gov portals you'd never paste elsewhere."},
+    {n:"05",dir:"05-cortex",ico:"🧠",name:"Cortex",tag:"Study tutor",c1:"#7c5cff",c2:"#ff5cb8",
+      desc:"Turns your notes into quizzes, then coaches you through answers like a patient Socratic tutor that gives hints, not verdicts.",
+      feat:"Why local: unlimited practice, no usage caps — and it works offline."},
+    {n:"06",dir:"06-aether-tavern",ico:"⚔️",name:"Aether Tavern",tag:"Living NPCs",c1:"#ff7a18",c2:"#7a4bff",
+      desc:"Game characters that improvise in-character responses to anything the player types — infinite, unscripted dialogue.",
+      feat:"Why local: zero backend cost is what makes AI-driven indie games shippable."},
+    {n:"07",dir:"07-veil",ico:"🛡️",name:"Veil",tag:"PII redactor",c1:"#37d67a",c2:"#28c8d8",
+      desc:"Finds and strips names, emails, and account numbers from text on-device — before anything is sent to a cloud service.",
+      feat:"Why local: redaction is only trustworthy if the redactor never touches the network."},
+    {n:"08",dir:"08-triage",ico:"✉️",name:"Triage",tag:"Inbox intelligence",c1:"#2563eb",c2:"#ff6b5e",
+      desc:"Summarizes long email threads, flags priority, and drafts replies in three tones — without granting access to your mailbox.",
+      feat:"Why local: solves the #1 objection enterprises have to email AI."},
+    {n:"09",dir:"09-tabula",ico:"▦",name:"Tabula",tag:"Text → data",c1:"#c6ff00",c2:"#00e5ff",
+      desc:"Turns messy text — receipts, contacts, schedules — into clean tables you can copy as CSV or JSON, using structured output.",
+      feat:"Why local: free means you can run it over hundreds of rows without cost anxiety."},
+    {n:"10",dir:"10-relay",ico:"⇄",name:"Relay",tag:"Hybrid router",c1:"#34e89e",c2:"#7b6cff",
+      desc:"An architecture that keeps easy/private requests on-device and only escalates hard reasoning to the cloud, with live fallback.",
+      feat:"Why local: instant & free for the 80% of trivial calls; cloud bill plummets."}
+  ];
+
+  document.getElementById('grid').innerHTML = PROJECTS.map(p=>`
+    <a class="card" href="projects/${p.dir}/index.html" style="--c1:${p.c1};--c2:${p.c2}">
+      <div class="num">${p.n} / 10</div>
+      <div class="ico">${p.ico}</div>
+      <h3>${p.name}</h3>
+      <div class="tag">${p.tag}</div>
+      <p>${p.desc}</p>
+      <div class="feat">${p.feat}</div>
+      <span class="open">Open live demo <span class="arrow">→</span></span>
+    </a>`).join('');
+
+  // Show whether the live API is available in this browser.
+  const env=document.getElementById('env');
+  PromptAPI.availability().then(a=>{
+    if(a==='unavailable'){ env.innerHTML='◍ Demo mode · simulated (live API not detected)'; }
+    else { env.innerHTML='● Live · on-device AI detected'; env.style.color='#2ee6c5'; env.style.borderColor='#2ee6c544'; }
+  });
+</script>
+</body>
+</html>

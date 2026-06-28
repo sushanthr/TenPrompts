@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Inkwell — your private AI journal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,900&family=Newsreader:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#1a1f3a; --ink2:#2c3358; --cream:#f7f1e3; --paper:#fffaf0;
+    --gold:#c9a227; --rose:#c2576b; --muted:#6a6f86;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:"Newsreader",Georgia,serif; color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #fbe7c6 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #e9d7f0 0%, transparent 55%),
+      var(--cream);
+    min-height:100vh;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:34px 22px 80px}
+  .top{display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap}
+  .brand{display:flex; align-items:center; gap:12px}
+  .logo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--ink),var(--ink2));color:var(--gold);font-family:"Fraunces";font-weight:900;font-size:24px}
+  .brand h1{font-family:"Fraunces";font-weight:900;font-size:26px;margin:0;letter-spacing:-.5px}
+  .brand span{display:block;font-size:12px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
+  .badge{font-family:"Newsreader";font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid #00000018;display:flex;align-items:center;gap:8px;background:#fff8}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:#2faa6a;box-shadow:0 0 0 4px #2faa6a22}
+  .badge.demo .dot{background:var(--gold);box-shadow:0 0 0 4px #c9a22722}
+  .hero{margin:46px 0 28px}
+  .hero h2{font-family:"Fraunces";font-weight:900;font-size:clamp(38px,7vw,68px);line-height:.98;margin:0 0 14px;letter-spacing:-1.5px}
+  .hero h2 em{font-style:italic;color:var(--rose)}
+  .hero p{font-size:20px;max-width:60ch;color:var(--ink2);line-height:1.5}
+  .card{background:var(--paper);border-radius:20px;padding:26px;box-shadow:0 30px 60px -30px #1a1f3a55, inset 0 1px 0 #fff;border:1px solid #00000010}
+  .card .prompt{font-family:"Fraunces";font-style:italic;font-size:18px;color:var(--ink2);border-left:3px solid var(--gold);padding-left:14px;margin-bottom:14px}
+  textarea{width:100%;min-height:170px;border:none;outline:none;resize:vertical;background:transparent;
+    font-family:"Newsreader";font-size:19px;line-height:1.7;color:var(--ink)}
+  textarea::placeholder{color:#9a8f7e}
+  .row{display:flex;gap:10px;align-items:center;margin-top:14px;flex-wrap:wrap}
+  button{font-family:"Fraunces";font-weight:600;cursor:pointer;border:none;border-radius:12px;padding:12px 20px;font-size:16px}
+  .primary{background:linear-gradient(135deg,var(--ink),var(--ink2));color:var(--paper)}
+  .primary:hover{transform:translateY(-1px)}
+  .ghost{background:#0000000d;color:var(--ink)}
+  .out{margin-top:24px;display:none}
+  .out.show{display:block;animation:rise .5s ease}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .reflect{background:linear-gradient(135deg,#fff,#fbf3df);border-radius:18px;padding:22px 24px;border:1px solid #c9a22730;position:relative}
+  .reflect:before{content:"Reflection";position:absolute;top:-11px;left:18px;background:var(--gold);color:#fff;font-family:"Fraunces";font-size:11px;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:999px}
+  .reflect p{font-size:18px;line-height:1.65;margin:8px 0}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:13px;padding:5px 12px;border-radius:999px;background:#1a1f3a0d;color:var(--ink2)}
+  footer{margin-top:46px;font-size:14px;color:var(--muted);text-align:center}
+  footer a{color:var(--ink2)}
+  .back{font-size:14px;color:var(--muted);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <div class="logo">I</div>
+      <div><h1>Inkwell</h1><span>Private journal</span></div>
+    </div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking model…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Write freely.<br>Reflect <em>privately.</em></h2>
+    <p>A journal that thinks alongside you — surfacing gentle prompts, naming your moods, and weaving weekly summaries. Every word stays on your device. Nothing is ever uploaded.</p>
+  </div>
+
+  <div class="card">
+    <div class="prompt" id="seedPrompt">What's been quietly taking up space in your mind today?</div>
+    <textarea id="entry" placeholder="Start writing…">It's been one of those weeks. The launch slipped again and I keep telling everyone it's fine, but I noticed I've stopped sleeping properly. There's this low hum of dread I can't quite name. The good part — Maya called and we laughed about nothing for an hour. I'd forgotten how much I needed that.</textarea>
+    <div class="row">
+      <button class="primary" id="reflectBtn">Reflect on this entry</button>
+      <button class="ghost" id="newPrompt">New writing prompt</button>
+    </div>
+  </div>
+
+  <div class="out" id="out">
+    <div class="reflect">
+      <p id="reflectText"></p>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+
+  <footer>
+    Runs on the browser’s built-in <strong>Prompt API</strong> — fully on-device. · <a href="../../index.html" class="back">← Back to portfolio</a>
+  </footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge = document.getElementById('badge');
+  const badgeText = document.getElementById('badgeText');
+  function setStatus(state, pct){
+    const s = PromptAPI.statusLabel(state, pct);
+    badge.className = 'badge ' + (s.tone === 'live' ? 'live' : s.tone === 'demo' ? 'demo' : '');
+    badgeText.textContent = s.text;
+  }
+  PromptAPI.availability().then(a => setStatus(a === 'unavailable' ? 'demo' : 'live'));
+
+  const prompts = [
+    "What's been quietly taking up space in your mind today?",
+    "Name one moment from today you'd want to remember in a year.",
+    "What did you avoid today, and what was underneath the avoidance?",
+    "Where did you feel most like yourself this week?",
+    "What's a story you keep telling yourself that might not be true?"
+  ];
+  document.getElementById('newPrompt').onclick = () => {
+    const p = prompts[Math.floor(Math.random()*prompts.length)];
+    document.getElementById('seedPrompt').textContent = p;
+  };
+
+  document.getElementById('reflectBtn').onclick = async () => {
+    const entry = document.getElementById('entry').value.trim();
+    if(!entry) return;
+    const out = document.getElementById('out');
+    const rt = document.getElementById('reflectText');
+    out.classList.add('show'); rt.textContent = '';
+    document.getElementById('chips').innerHTML = '';
+
+    await PromptAPI.run({
+      system: "You are a warm, perceptive journaling companion. Read the entry and respond in 3-4 sentences: reflect back the core emotion with compassion, gently surface one pattern or question worth sitting with, and never give clinical advice. Speak directly to the writer. End with one short reflective question.",
+      temperature: 0.7,
+      prompt: entry,
+      onStatus: setStatus,
+      onChunk: (full) => { rt.textContent = full; },
+      simulate: () => "There's a tenderness in how you're holding two truths at once — the weight of the slipping launch and the relief of an hour spent laughing with Maya. The dread you can't name might simply be the gap between how fine you keep saying things are and how tired you actually feel. It's worth noticing that connection, not productivity, is what loosened the knot this week. What would it look like to let yourself need that on purpose, rather than by accident?"
+    });
+
+    // Lightweight mood tags (illustrative — these could also be model-generated).
+    const tags = ['overwhelm', 'relief', 'connection', 'avoidance'];
+    document.getElementById('chips').innerHTML = tags.map(t => `<span class="chip">#${t}</span>`).join('');
+  };
+</script>
+</body>
+</html>

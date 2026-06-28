@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aether Tavern — talk to anyone, infinitely</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Spectral:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#120a08;--ember:#ff7a18;--gold:#e8b04b;--purple:#7a4bff;--blood:#c0392b;--ink:#f3e3c8;--muted:#a98b6a;--panel:#1d110c}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Spectral",Georgia,serif;color:var(--ink);min-height:100vh;background:
+    radial-gradient(800px 600px at 50% -10%,#ff7a1822,transparent 60%),
+    radial-gradient(600px 500px at 100% 100%,#7a4bff1f,transparent 60%),var(--bg)}
+  .wrap{max-width:880px;margin:0 auto;padding:26px 22px 70px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--ember),var(--blood));display:grid;place-items:center;font-family:"Cinzel";font-weight:900;color:#1a0c06;box-shadow:0 0 24px #ff7a1855}
+  .brand h1{margin:0;font-family:"Cinzel";font-size:22px;font-weight:900;letter-spacing:1px}
+  .brand span{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-size:12px;padding:7px 13px;border-radius:999px;border:1px solid #ffffff14;display:flex;gap:8px;align-items:center;background:#0000003d}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--gold);box-shadow:0 0 0 4px #e8b04b33}
+  .badge.demo .dot{background:var(--ember);box-shadow:0 0 0 4px #ff7a1833}
+  .hero{margin:40px 0 22px;text-align:center}
+  .hero h2{font-family:"Cinzel";font-weight:900;font-size:clamp(34px,7vw,62px);margin:0 0 12px;letter-spacing:1px;
+    background:linear-gradient(120deg,var(--gold),var(--ember));-webkit-background-clip:text;background-clip:text;color:transparent;text-shadow:0 2px 30px #ff7a1833}
+  .hero p{color:var(--muted);font-size:18px;max-width:56ch;margin:0 auto;line-height:1.6;font-style:italic}
+  .cast{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:20px 0}
+  .npc{cursor:pointer;border:1px solid #ffffff14;background:#0000002e;border-radius:14px;padding:12px 16px;text-align:center;min-width:120px;transition:.18s}
+  .npc:hover,.npc.active{border-color:var(--gold);background:#e8b04b14;box-shadow:0 10px 30px -16px #ff7a18}
+  .npc .face{font-size:30px}
+  .npc .name{font-family:"Cinzel";font-weight:700;font-size:15px;margin-top:4px}
+  .npc .role{font-size:12px;color:var(--muted)}
+  .scene{background:var(--panel);border:1px solid #ffffff12;border-radius:18px;padding:20px;box-shadow:inset 0 1px 0 #ffffff0a,0 30px 70px -40px #000}
+  .log{min-height:240px;max-height:380px;overflow-y:auto;padding-right:6px}
+  .line{margin:0 0 14px;line-height:1.65;font-size:17px}
+  .line .who{font-family:"Cinzel";font-weight:700;font-size:13px;letter-spacing:1px;display:block;margin-bottom:2px}
+  .line.npc-line .who{color:var(--gold)}
+  .line.you .who{color:var(--purple)}
+  .line.npc-line{background:#ffffff06;border-left:3px solid var(--gold);padding:10px 14px;border-radius:0 10px 10px 0}
+  .line.dm{font-style:italic;color:var(--muted);text-align:center;border:none}
+  .ask{display:flex;gap:10px;margin-top:14px}
+  input{flex:1;background:#0c0705;border:1px solid #ffffff14;border-radius:12px;padding:13px 15px;color:var(--ink);font-family:"Spectral";font-size:16px;outline:none}
+  input:focus{border-color:var(--ember)}
+  button.say{font-family:"Cinzel";font-weight:700;background:linear-gradient(135deg,var(--ember),var(--blood));color:#1a0c06;border:none;border-radius:12px;padding:0 20px;cursor:pointer}
+  footer{margin-top:34px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--gold);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">⚔</div><div><h1>Aether Tavern</h1><span>Living NPCs</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Every NPC, alive.</h2>
+    <p>Characters that answer anything you type — improvising in character, holding their own secrets. Infinite, unscripted dialogue with zero backend cost, which is exactly what makes AI-driven indie games finally shippable.</p>
+  </div>
+
+  <div class="cast" id="cast"></div>
+
+  <div class="scene">
+    <div class="log" id="log"></div>
+    <div class="ask">
+      <input id="say" placeholder="Say something to them…" />
+      <button class="say" id="sayBtn">Speak</button>
+    </div>
+  </div>
+
+  <footer>Each character is a separate on-device persona via the <strong>Prompt API</strong>. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'),badgeText=document.getElementById('badgeText');
+  function setStatus(s,p){const l=PromptAPI.statusLabel(s,p);badge.className='badge '+(l.tone==='live'?'live':l.tone==='demo'?'demo':'');badgeText.textContent=l.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  const NPCS={
+    grenda:{face:"🍺",name:"Grenda",role:"Tavern keeper",persona:"You are Grenda, a gruff but secretly kind dwarven tavern keeper. You speak in short, blunt sentences, distrust strangers at first, and know all the local gossip. Stay in character. 1-3 sentences.",greet:"Grenda slams a tankard down. \"Coin first, questions later. What'll it be?\"",
+      sims:["\"Hmph. You've got an honest face, which makes me trust you less. Sit. Don't touch the ledger.\"","\"Aye, I've heard things. The mill's been quiet since the miller vanished. Folk say the woods took him. Folk say a lot of things.\"","\"You want secrets? Secrets cost more than ale, friend.\""]},
+    sable:{face:"🗡️",name:"Sable",role:"Hooded stranger",persona:"You are Sable, a mysterious hooded rogue in the corner of a tavern. You speak in riddles and half-truths, never giving a straight answer, always hinting at a larger scheme. Stay in character. 1-3 sentences.",greet:"A voice drifts from the shadows. \"You walk like someone who's being followed. Sit before they notice you noticing.\"",
+      sims:["\"Names are leashes. I gave mine up long ago. But you... you still answer to yours. Interesting.\"","\"The thing you seek is closer than the thing you fear. For now, those are the same thing.\"","\"Ask the keeper about the cellar. Then ask yourself why she lied.\""]},
+    pip:{face:"🔮",name:"Pip",role:"Apprentice mage",persona:"You are Pip, an over-eager, slightly disaster-prone apprentice mage. You're enthusiastic, talk fast, overshare, and occasionally set things slightly on fire by accident. Stay in character. 1-3 sentences.",greet:"\"Oh! Oh hello! Are you an adventurer? You LOOK like an adventurer. Don't stand too close, my satchel is— it's fine, it's probably fine.\"",
+      sims:["\"So I MAY have turned the baker's cat invisible. On PURPOSE. Mostly. Anyway! Do you need anything enchanted? I do discounts!\"","\"My master says I'm 'not ready for fire magic.' My master is also currently a newt, so. Mixed signals, really.\"","\"Ooh, a real quest?! Take me with you! I can do — okay I can do ONE spell reliably but it's a GREAT one!\""]}
+  };
+
+  let current='grenda', simStep=0;
+  const cast=document.getElementById('cast');
+  cast.innerHTML=Object.entries(NPCS).map(([k,n])=>`<div class="npc${k==='grenda'?' active':''}" data-k="${k}"><div class="face">${n.face}</div><div class="name">${n.name}</div><div class="role">${n.role}</div></div>`).join('');
+  const log=document.getElementById('log');
+
+  function add(who,text,cls){const d=document.createElement('div');d.className='line '+cls;d.innerHTML=`<span class="who">${who}</span>${text}`;log.appendChild(d);log.scrollTop=log.scrollHeight;return d;}
+  function loadNPC(k){current=k;simStep=0;log.innerHTML='';document.querySelectorAll('.npc').forEach(n=>n.classList.toggle('active',n.dataset.k===k));add('','— You approach '+NPCS[k].name+' —','dm');add(NPCS[k].name,NPCS[k].greet,'npc-line');}
+  cast.querySelectorAll('.npc').forEach(n=>n.onclick=()=>loadNPC(n.dataset.k));
+  loadNPC('grenda');
+
+  async function speak(){
+    const input=document.getElementById('say').value.trim(); if(!input) return;
+    document.getElementById('say').value='';
+    add('You',input,'you');
+    const npc=NPCS[current];
+    const el=add(npc.name,'…','npc-line');
+    const sim=npc.sims[simStep%npc.sims.length];simStep++;
+    await PromptAPI.run({
+      system:npc.persona, temperature:0.9, topK:8,
+      prompt:input,
+      onStatus:setStatus,
+      onChunk:(full)=>{el.innerHTML=`<span class="who">${npc.name}</span>${full}`;log.scrollTop=log.scrollHeight;},
+      simulate:()=>sim
+    });
+  }
+  document.getElementById('sayBtn').onclick=speak;
+  document.getElementById('say').addEventListener('keydown',e=>{if(e.key==='Enter')speak();});
+</script>
+</body>
+</html>

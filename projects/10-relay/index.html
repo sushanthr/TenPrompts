@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Relay — hybrid local + cloud AI router</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#080a16;--local:#34e89e;--cloud:#7b6cff;--pink:#ff6ec7;--ink:#eaf0ff;--muted:#8b95b8;--panel:#0f1326;--line:#1d2440}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  body:before{content:"";position:fixed;inset:0;pointer-events:none;background:
+    radial-gradient(700px 500px at 12% 0,#34e89e1c,transparent 55%),
+    radial-gradient(700px 500px at 88% 100%,#7b6cff22,transparent 55%)}
+  .wrap{position:relative;max-width:980px;margin:0 auto;padding:28px 22px 70px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--local),var(--cloud));display:grid;place-items:center;color:#06121f;font-family:"Sora";font-weight:800}
+  .brand h1{margin:0;font-family:"Sora";font-size:22px;font-weight:800}
+  .brand span{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-size:12px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);display:flex;gap:8px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--local);box-shadow:0 0 0 4px #34e89e33}
+  .badge.demo .dot{background:var(--pink);box-shadow:0 0 0 4px #ff6ec733}
+  .hero{margin:44px 0 22px;max-width:62ch}
+  .hero h2{font-family:"Sora";font-weight:800;font-size:clamp(34px,6vw,58px);line-height:1.02;margin:0 0 14px;letter-spacing:-1px}
+  .hero h2 a{color:var(--local)}.hero h2 c{color:var(--cloud)}
+  .hero p{color:var(--muted);font-size:18px;line-height:1.55}
+  .router{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+  @media(max-width:780px){.router{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .panel h3{margin:0 0 12px;font-family:"Sora";font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .chips{display:flex;flex-direction:column;gap:8px}
+  .chip{text-align:left;font-size:14px;border:1px solid var(--line);background:#ffffff05;color:var(--ink);padding:11px 14px;border-radius:11px;cursor:pointer;transition:.15s}
+  .chip:hover{border-color:var(--local)}
+  .ask{display:flex;gap:10px;margin-top:12px}
+  input{flex:1;background:#070b18;border:1px solid var(--line);border-radius:12px;padding:13px 15px;color:var(--ink);font-family:"Inter";font-size:15px;outline:none}
+  .go{font-family:"Sora";font-weight:700;background:linear-gradient(135deg,var(--local),var(--cloud));color:#06121f;border:none;border-radius:12px;padding:0 18px;cursor:pointer}
+  .decision{margin-top:4px}
+  .route{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;border:1px solid var(--line);margin-bottom:10px;opacity:.45;transition:.3s}
+  .route.on{opacity:1}
+  .route.local.on{border-color:var(--local);background:#34e89e12;box-shadow:0 0 30px -12px #34e89e}
+  .route.cloud.on{border-color:var(--cloud);background:#7b6cff12;box-shadow:0 0 30px -12px #7b6cff}
+  .route .ico{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:18px;flex:0 0 auto}
+  .route.local .ico{background:#34e89e22}.route.cloud .ico{background:#7b6cff22}
+  .route .meta{flex:1}
+  .route .meta b{font-family:"Sora";font-size:15px}
+  .route .meta small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+  .route .lat{font-family:"Sora";font-size:13px;color:var(--muted)}
+  .reason{font-size:13px;color:var(--muted);margin:8px 0 4px;min-height:18px}
+  .answer{margin-top:14px;background:#070b18;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:15px;line-height:1.65;white-space:pre-wrap;min-height:60px}
+  .stats{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap}
+  .stat{flex:1;min-width:120px;background:#070b18;border:1px solid var(--line);border-radius:12px;padding:12px 14px;text-align:center}
+  .stat .n{font-family:"Sora";font-size:22px;font-weight:800}
+  .stat .n.local{color:var(--local)}.stat .n.cloud{color:var(--cloud)}.stat .n.save{color:var(--pink)}
+  .stat small{color:var(--muted);font-size:12px}
+  footer{margin-top:34px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--local);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">⇄</div><div><h1>Relay</h1><span>Hybrid router</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Cheap & instant <a>locally</a>.<br>Powerful in the <c>cloud</c>.</h2>
+    <p>An architecture pattern: route easy, private requests to the on-device model and only escalate hard reasoning to the cloud. Faster, cheaper, offline-capable for basics — and your cloud bill drops off a cliff.</p>
+  </div>
+
+  <div class="router">
+    <div class="panel">
+      <h3>Try a request</h3>
+      <div class="chips" id="chips"></div>
+      <div class="ask">
+        <input id="q" placeholder="Type any request…" />
+        <button class="go" id="go">Route</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>Routing decision</h3>
+      <div class="decision">
+        <div class="route local" id="rLocal"><div class="ico">📱</div><div class="meta"><b>On-device</b><small>Gemini Nano · Prompt API · free · private</small></div><div class="lat" id="latLocal">~0ms</div></div>
+        <div class="route cloud" id="rCloud"><div class="ico">☁️</div><div class="meta"><b>Cloud model</b><small>Claude · deep reasoning · costs tokens</small></div><div class="lat" id="latCloud">~600ms</div></div>
+      </div>
+      <div class="reason" id="reason"></div>
+      <div class="answer" id="answer">Pick a request to see how it's routed.</div>
+      <div class="stats">
+        <div class="stat"><div class="n local" id="sLocal">0</div><small>handled local</small></div>
+        <div class="stat"><div class="n cloud" id="sCloud">0</div><small>escalated</small></div>
+        <div class="stat"><div class="n save" id="sSave">0%</div><small>cloud calls saved</small></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Local tier uses <code>LanguageModel.availability()</code> + the <strong>Prompt API</strong>; the cloud tier is your existing API. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'),badgeText=document.getElementById('badgeText');
+  function setStatus(s,p){const l=PromptAPI.statusLabel(s,p);badge.className='badge '+(l.tone==='live'?'live':l.tone==='demo'?'demo':'');badgeText.textContent=l.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  // Examples with a heuristic "complexity" routing label.
+  const EX=[
+    {q:"Fix the grammar: 'we was hoping to meet'",local:true,a:"We were hoping to meet.",reason:"Simple rewrite → stays on-device. Instant & free."},
+    {q:"Classify this review sentiment: 'Honestly the best purchase all year'",local:true,a:"Positive (high confidence).",reason:"Lightweight classification → on-device."},
+    {q:"Summarize in one line: long meeting notes…",local:true,a:"The team agreed to ship the trial behind a flag this week, with Dana owning rollout.",reason:"Short summary → on-device."},
+    {q:"Design a 6-week migration plan from a monolith to microservices with rollback gates",local:false,a:"This needs multi-step architectural reasoning and long output, so Relay escalated to the cloud model for a full phased plan with risk gates…",reason:"Complex, long-form reasoning → escalated to cloud."},
+    {q:"Prove this algorithm is O(n log n) and suggest an optimization",local:false,a:"Formal complexity analysis + optimization requires deeper reasoning — routed to the cloud model.",reason:"Hard reasoning → escalated to cloud."}
+  ];
+  let nLocal=0,nCloud=0;
+  document.getElementById('chips').innerHTML=EX.map((e,i)=>`<button class="chip" data-i="${i}">${e.q}</button>`).join('');
+
+  function decideLocal(q){
+    // Tiny heuristic router: long or "reasoning" requests go to cloud.
+    const hard=/(plan|architecture|migrat|prove|optimi|strategy|design a|step-by-step|multi|debug|why does)/i;
+    return q.length<160 && !hard.test(q);
+  }
+
+  async function route(q,preset){
+    const local = preset ? preset.local : decideLocal(q);
+    document.getElementById('rLocal').classList.toggle('on',local);
+    document.getElementById('rCloud').classList.toggle('on',!local);
+    document.getElementById('latLocal').textContent = local ? '~40ms' : '—';
+    document.getElementById('latCloud').textContent = local ? '—' : '~600ms';
+    document.getElementById('reason').textContent = preset ? preset.reason : (local?"Simple & private → handled on-device. Instant & free.":"Complex reasoning → escalated to the cloud model.");
+    const ans=document.getElementById('answer'); ans.textContent='';
+
+    if(local){
+      nLocal++;
+      await PromptAPI.run({
+        system:"You are a fast on-device assistant. Answer concisely.",
+        temperature:0.4, prompt:q,
+        onStatus:setStatus,
+        onChunk:(full)=>{ans.textContent=full;},
+        simulate:()=> preset ? preset.a : "Handled instantly on-device — no network, no cost."
+      });
+    } else {
+      nCloud++;
+      // Simulated cloud latency + response (in a real app: your existing cloud API call).
+      ans.textContent='☁️ Escalating to cloud model…';
+      await new Promise(r=>setTimeout(r,650));
+      ans.textContent = preset ? preset.a : "This request needs deeper reasoning, so Relay would call your cloud model (e.g. Claude) here and stream the richer answer back.";
+    }
+    const total=nLocal+nCloud;
+    document.getElementById('sLocal').textContent=nLocal;
+    document.getElementById('sCloud').textContent=nCloud;
+    document.getElementById('sSave').textContent=Math.round(nLocal/total*100)+'%';
+  }
+
+  document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{const e=EX[c.dataset.i];document.getElementById('q').value=e.q;route(e.q,e);});
+  document.getElementById('go').onclick=()=>{const q=document.getElementById('q').value.trim();if(q)route(q,null);};
+  document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter'){const q=e.target.value.trim();if(q)route(q,null);}});
+</script>
+</body>
+</html>

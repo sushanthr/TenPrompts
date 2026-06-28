@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Triage — inbox intelligence, on-device</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#f4f6fb;--ink:#13203b;--blue:#2563eb;--coral:#ff6b5e;--muted:#697590;--card:#fff;--line:#e6ebf4;--green:#16a06a}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Inter",system-ui,sans-serif;background:
+    radial-gradient(800px 400px at 100% -5%,#dbe6ff 0,transparent 55%),
+    radial-gradient(600px 400px at -5% 105%,#ffe2de 0,transparent 55%),var(--bg);color:var(--ink);min-height:100vh}
+  .wrap{max-width:1000px;margin:0 auto;padding:28px 22px 70px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--coral));display:grid;place-items:center;color:#fff;font-weight:800}
+  .brand h1{margin:0;font-size:22px;font-weight:800}
+  .brand span{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-size:13px;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:#fff;display:flex;gap:8px;align-items:center}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--green);box-shadow:0 0 0 4px #16a06a33}
+  .badge.demo .dot{background:var(--coral);box-shadow:0 0 0 4px #ff6b5e33}
+  .hero{margin:44px 0 22px;max-width:60ch}
+  .hero h2{font-weight:800;font-size:clamp(34px,6vw,58px);line-height:1.02;margin:0 0 14px;letter-spacing:-1px}
+  .hero h2 b{background:linear-gradient(120deg,var(--blue),var(--coral));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--muted);font-size:18px;line-height:1.55}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:16px}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 20px 50px -34px #13203b66}
+  .card h3{margin:0 0 12px;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .thread{max-height:300px;overflow-y:auto}
+  .msg{border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;background:#fbfcff}
+  .msg .from{font-weight:700;font-size:14px}
+  .msg .when{font-size:12px;color:var(--muted);float:right}
+  .msg p{margin:6px 0 0;font-size:14px;line-height:1.5;color:#36415c}
+  .summary{background:linear-gradient(135deg,#eef4ff,#fff);border:1px solid #2563eb22;border-radius:14px;padding:16px;font-size:15px;line-height:1.65;white-space:pre-wrap;min-height:60px}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+  .tag{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px}
+  .t-priority{background:#ff6b5e1a;color:#d23f33}.t-cat{background:#2563eb14;color:#1d4ed8}.t-action{background:#16a06a1a;color:#0f7a50}
+  .tones{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px}
+  .tone{font-size:14px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 15px;border-radius:11px;cursor:pointer}
+  .tone.active,.tone:hover{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .draft{background:#fbfcff;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:15px;line-height:1.6;white-space:pre-wrap;min-height:120px}
+  .go{font-family:"Inter";font-weight:700;background:linear-gradient(135deg,var(--blue),var(--coral));color:#fff;border:none;border-radius:12px;padding:12px 20px;font-size:15px;cursor:pointer;margin-top:6px}
+  footer{margin-top:34px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">✉</div><div><h1>Triage</h1><span>Inbox AI</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Your inbox, <b>summarized & answered.</b></h2>
+    <p>Summarize long threads, flag priority, and draft replies in three tones — all without handing a third party access to your entire mailbox. The #1 objection to email AI, solved by keeping it on-device.</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Thread (4 messages)</h3>
+      <div class="thread" id="thread"></div>
+    </div>
+    <div class="card">
+      <h3>Triage</h3>
+      <div class="tags" id="tags"></div>
+      <div class="summary" id="summary">Click below to summarize this thread on-device.</div>
+      <button class="go" id="sumBtn">Summarize & classify</button>
+      <h3 style="margin-top:18px">Draft a reply</h3>
+      <div class="tones" id="tones">
+        <button class="tone active" data-t="brief">Brief</button>
+        <button class="tone" data-t="formal">Formal</button>
+        <button class="tone" data-t="friendly">Friendly</button>
+      </div>
+      <div class="draft" id="draft">Your drafted reply will appear here.</div>
+      <button class="go" id="draftBtn">Draft reply →</button>
+    </div>
+  </div>
+
+  <footer>Summaries and drafts generated on-device with the <strong>Prompt API</strong>. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'),badgeText=document.getElementById('badgeText');
+  function setStatus(s,p){const l=PromptAPI.statusLabel(s,p);badge.className='badge '+(l.tone==='live'?'live':l.tone==='demo'?'demo':'');badgeText.textContent=l.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  const THREAD=[
+    {from:"Priya (ClientCo)",when:"Mon 9:02",body:"Hi — we're reviewing the Q3 proposal internally. The team likes the direction but legal flagged the data-retention clause. Can you clarify how long you store customer records?"},
+    {from:"You",when:"Mon 11:20",body:"Thanks Priya! We currently retain records for 24 months, but it's configurable. Happy to walk legal through the options."},
+    {from:"Priya (ClientCo)",when:"Tue 8:47",body:"Great. Legal would prefer 12 months max with auto-deletion. Also — can we move the kickoff to the 15th instead of the 8th? Two of our stakeholders are out that week."},
+    {from:"Priya (ClientCo)",when:"Wed 7:15",body:"Following up on this — we'd love to get sign-off by Friday if possible so we can lock budget for the quarter. Let me know on the retention setting and the new date."}
+  ];
+  document.getElementById('thread').innerHTML=THREAD.map(m=>`<div class="msg"><span class="when">${m.when}</span><span class="from">${m.from}</span><p>${m.body}</p></div>`).join('');
+  const threadText=THREAD.map(m=>`${m.from} (${m.when}): ${m.body}`).join('\n\n');
+
+  document.getElementById('sumBtn').onclick=async()=>{
+    const sum=document.getElementById('summary'); sum.textContent='';
+    document.getElementById('tags').innerHTML='<span class="tag t-priority">● High priority</span><span class="tag t-cat">Sales / Contract</span><span class="tag t-action">Needs reply by Fri</span>';
+    await PromptAPI.run({
+      system:"You summarize email threads for a busy professional. Give a 2-3 sentence summary, then a short 'Action needed:' line listing the concrete asks. Be specific.",
+      temperature:0.3,
+      prompt:threadText,
+      onStatus:setStatus,
+      onChunk:(full)=>{sum.textContent=full;},
+      simulate:()=>"ClientCo likes the Q3 proposal but their legal team wants the data-retention period reduced from 24 to 12 months with auto-deletion. Priya also asked to push the kickoff from the 8th to the 15th, and wants sign-off by Friday to lock the quarter's budget.\n\nAction needed:\n• Confirm you can set retention to 12 months with auto-deletion\n• Approve moving kickoff to the 15th\n• Respond before Friday"
+    });
+  };
+
+  let tone='brief';
+  document.querySelectorAll('.tone').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tone').forEach(x=>x.classList.remove('active'));b.classList.add('active');tone=b.dataset.t;});
+  const sims={
+    brief:"Hi Priya — yes, we can set retention to 12 months with auto-deletion, and the 15th works for kickoff. I'll have everything ready for Friday sign-off. Best, ",
+    formal:"Hi Priya,\n\nThank you for the update. We can confirm that retention can be configured to 12 months with automatic deletion, which should satisfy your legal team's requirement. We're also happy to move the kickoff to the 15th to accommodate your stakeholders.\n\nWe'll ensure everything is in order for sign-off by Friday. Please let me know if anything else is needed.\n\nBest regards,",
+    friendly:"Hi Priya!\n\nGreat news on both fronts — 12 months with auto-deletion is totally doable, and the 15th works perfectly for us. 🎉 I'll get everything lined up so you can sign off by Friday and lock in the budget.\n\nThanks so much for keeping this moving!\nBest,"
+  };
+  document.getElementById('draftBtn').onclick=async()=>{
+    const draft=document.getElementById('draft'); draft.textContent='';
+    await PromptAPI.run({
+      system:"You draft email replies on behalf of the user. Address every open question in the thread. Match the requested tone. Return only the email body.",
+      temperature:0.6,
+      prompt:`Tone: ${tone}.\n\nThread:\n${threadText}\n\nWrite my reply.`,
+      onStatus:setStatus,
+      onChunk:(full)=>{draft.textContent=full;},
+      simulate:()=>sims[tone]
+    });
+  };
+</script>
+</body>
+</html>

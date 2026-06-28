@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tabula — paste anything, get clean data</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0c0c0c;--lime:#c6ff00;--ink:#f2f2f2;--muted:#8a8a8a;--line:#262626;--panel:#161616;--cyan:#00e5ff}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Space Grotesk",system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  .wrap{max-width:1040px;margin:0 auto;padding:26px 22px 70px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:18px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:8px;background:var(--lime);display:grid;place-items:center;color:#0c0c0c;font-family:"Space Mono";font-weight:700;font-size:22px}
+  .brand h1{margin:0;font-family:"Space Mono";font-size:22px;font-weight:700}
+  .brand span{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-family:"Space Mono";font-size:12px;padding:7px 12px;border:1px solid var(--line);display:flex;gap:8px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--lime)}
+  .badge.demo .dot{background:var(--cyan)}
+  .hero{margin:46px 0 8px}
+  .hero h2{font-family:"Space Grotesk";font-weight:700;font-size:clamp(38px,8vw,76px);line-height:.92;margin:0 0 16px;letter-spacing:-2px}
+  .hero h2 mark{background:var(--lime);color:#0c0c0c;padding:0 8px}
+  .hero p{color:var(--muted);font-size:18px;max-width:58ch;line-height:1.55}
+  .modes{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0}
+  .mode{font-family:"Space Mono";font-size:13px;border:1px solid var(--line);background:transparent;color:var(--ink);padding:9px 14px;cursor:pointer}
+  .mode.active{background:var(--lime);color:#0c0c0c;border-color:var(--lime)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;border:1px solid var(--line);background:var(--line)}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+  .pane{background:var(--bg);padding:18px}
+  .pane h3{margin:0 0 12px;font-family:"Space Mono";font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
+  textarea{width:100%;min-height:240px;background:var(--panel);border:1px solid var(--line);color:var(--ink);font-family:"Space Mono";font-size:13px;line-height:1.7;padding:14px;outline:none;resize:vertical}
+  textarea:focus{border-color:var(--lime)}
+  .go{font-family:"Space Mono";font-weight:700;background:var(--lime);color:#0c0c0c;border:none;padding:13px 22px;font-size:14px;cursor:pointer;margin-top:14px;text-transform:uppercase;letter-spacing:1px}
+  .tableWrap{min-height:240px;overflow:auto}
+  table{border-collapse:collapse;width:100%;font-family:"Space Mono";font-size:13px}
+  th{background:#1d1d1d;color:var(--lime);text-align:left;padding:9px 11px;border:1px solid var(--line);position:sticky;top:0}
+  td{padding:9px 11px;border:1px solid var(--line);color:var(--ink)}
+  tr:nth-child(even) td{background:#121212}
+  .copy{font-family:"Space Mono";font-size:12px;background:transparent;border:1px solid var(--line);color:var(--muted);padding:7px 12px;cursor:pointer;margin-top:12px}
+  .copy:hover{color:var(--lime);border-color:var(--lime)}
+  footer{margin-top:30px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--lime);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">▦</div><div><h1>Tabula</h1><span>Text → data</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Messy in.<br><mark>Clean data</mark> out.</h2>
+    <p>Paste a receipt, a wall of emails, a blob of specs — get back a structured table you can copy as CSV or JSON. Free and on-device, so you can run it over hundreds of rows without a single API cent.</p>
+    <div class="modes" id="modes">
+      <button class="mode active" data-m="receipt">🧾 Receipt</button>
+      <button class="mode" data-m="contacts">👤 Contacts</button>
+      <button class="mode" data-m="events">📅 Events</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="pane">
+      <h3>Unstructured input</h3>
+      <textarea id="src"></textarea>
+      <button class="go" id="go">Extract →</button>
+    </div>
+    <div class="pane">
+      <h3>Structured output</h3>
+      <div class="tableWrap" id="tableWrap"><em style="color:var(--muted)">Your table appears here.</em></div>
+      <button class="copy" id="copyCsv">Copy CSV</button>
+      <button class="copy" id="copyJson">Copy JSON</button>
+    </div>
+  </div>
+
+  <footer>Structured extraction via the <strong>Prompt API</strong> with <code>responseConstraint</code>. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'),badgeText=document.getElementById('badgeText');
+  function setStatus(s,p){const l=PromptAPI.statusLabel(s,p);badge.className='badge '+(l.tone==='live'?'live':l.tone==='demo'?'demo':'');badgeText.textContent=l.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  const MODES={
+    receipt:{
+      sample:"WHOLE FOODS MARKET\n4th & Mission\n\nOrganic Bananas       2.18 lb @ 0.99   2.16\nAlmond Milk x2                           7.98\nSourdough Loaf                           5.49\nFree Range Eggs                          6.29\nDark Chocolate 85%                       3.79\n\nSubtotal                                25.71\nTax                                       1.29\nTOTAL                                   27.00",
+      cols:["item","qty","price"],
+      instruct:"Extract each purchased line item with its quantity (default 1) and price. Ignore subtotal/tax/total.",
+      sim:[{item:"Organic Bananas",qty:"2.18 lb",price:"2.16"},{item:"Almond Milk",qty:"2",price:"7.98"},{item:"Sourdough Loaf",qty:"1",price:"5.49"},{item:"Free Range Eggs",qty:"1",price:"6.29"},{item:"Dark Chocolate 85%",qty:"1",price:"3.79"}]
+    },
+    contacts:{
+      sample:"Met a few folks at the conference. Jordan Reyes runs ops at NorthStar, reach him at jordan@northstar.io or 503-555-0142. There was also Aisha Khan, a designer — aisha.k@pixelworks.studio. And Tom from Bluewave (sales), tom.bluewave@gmail.com, 415 555 7781.",
+      cols:["name","role","company","email","phone"],
+      instruct:"Extract each person mentioned with their name, role, company, email and phone (leave blank if unknown).",
+      sim:[{name:"Jordan Reyes",role:"Ops",company:"NorthStar",email:"jordan@northstar.io",phone:"503-555-0142"},{name:"Aisha Khan",role:"Designer",company:"Pixelworks",email:"aisha.k@pixelworks.studio",phone:""},{name:"Tom",role:"Sales",company:"Bluewave",email:"tom.bluewave@gmail.com",phone:"415 555 7781"}]
+    },
+    events:{
+      sample:"Reminders for next week: dentist Tuesday at 9am. Standup moved to Mon 10:30. Mom's birthday dinner Saturday 7pm at Luigi's. Quarterly review with Dana on Thursday afternoon, probably 2-3pm. Don't forget the gym class Wednesday 6am.",
+      cols:["event","day","time"],
+      instruct:"Extract each event with its name, day, and time.",
+      sim:[{event:"Dentist",day:"Tuesday",time:"9:00 AM"},{event:"Standup",day:"Monday",time:"10:30 AM"},{event:"Mom's birthday dinner",day:"Saturday",time:"7:00 PM"},{event:"Quarterly review with Dana",day:"Thursday",time:"2:00–3:00 PM"},{event:"Gym class",day:"Wednesday",time:"6:00 AM"}]
+    }
+  };
+
+  let mode='receipt', lastRows=[], lastCols=[];
+  function loadMode(m){mode=m;document.getElementById('src').value=MODES[m].sample;document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('active',b.dataset.m===m));}
+  document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>loadMode(b.dataset.m));
+  loadMode('receipt');
+
+  function renderTable(cols,rows){
+    lastRows=rows;lastCols=cols;
+    let h='<table><thead><tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr></thead><tbody>';
+    h+=rows.map(r=>'<tr>'+cols.map(c=>`<td>${(r[c]??'').toString().replace(/</g,'&lt;')}</td>`).join('')+'</tr>').join('');
+    h+='</tbody></table>';
+    document.getElementById('tableWrap').innerHTML=h;
+  }
+
+  document.getElementById('go').onclick=async()=>{
+    const m=MODES[mode];
+    const schema={type:"object",properties:{rows:{type:"array",items:{type:"object",properties:Object.fromEntries(m.cols.map(c=>[c,{type:"string"}])),required:m.cols}}},required:["rows"]};
+    document.getElementById('tableWrap').innerHTML='<em style="color:var(--muted)">Extracting…</em>';
+    const raw=await PromptAPI.run({
+      system:"You extract structured data from messy text. Return JSON matching the schema exactly. "+m.instruct,
+      temperature:0.1, schema:schema,
+      prompt:document.getElementById('src').value,
+      onStatus:setStatus, onChunk:()=>{},
+      simulate:()=>JSON.stringify({rows:m.sim})
+    });
+    let rows=[];try{rows=JSON.parse(raw).rows||[];}catch(e){rows=m.sim;}
+    renderTable(m.cols,rows);
+  };
+
+  document.getElementById('copyCsv').onclick=()=>{
+    if(!lastRows.length)return;
+    const csv=[lastCols.join(',')].concat(lastRows.map(r=>lastCols.map(c=>`"${(r[c]??'').toString().replace(/"/g,'""')}"`).join(','))).join('\n');
+    navigator.clipboard.writeText(csv);
+  };
+  document.getElementById('copyJson').onclick=()=>{ if(lastRows.length)navigator.clipboard.writeText(JSON.stringify(lastRows,null,2)); };
+</script>
+</body>
+</html>

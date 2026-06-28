@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Recall — ask your own notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#070b14;--panel:#0d1322;--teal:#2ee6c5;--blue:#3b82f6;--ink:#e6edf6;--muted:#7e8aa3;--line:#1b2438}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  body:before{content:"";position:fixed;inset:0;background:radial-gradient(900px 500px at 100% 0,#2ee6c518,transparent 55%),radial-gradient(700px 500px at 0 100%,#3b82f618,transparent 55%);pointer-events:none}
+  .wrap{position:relative;max-width:1040px;margin:0 auto;padding:28px 22px 70px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--teal),var(--blue));display:grid;place-items:center;color:#04111a;font-family:"Sora";font-weight:700}
+  .brand h1{font-family:"Sora";font-size:22px;margin:0}
+  .brand span{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-size:12px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);display:flex;gap:8px;align-items:center;background:#ffffff05}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--teal);box-shadow:0 0 0 4px #2ee6c533}
+  .badge.demo .dot{background:#f5b342;box-shadow:0 0 0 4px #f5b34233}
+  .hero{margin:48px 0 26px;max-width:60ch}
+  .hero h2{font-family:"Sora";font-weight:700;font-size:clamp(34px,6vw,60px);line-height:1;margin:0 0 16px}
+  .hero h2 b{color:var(--teal)}
+  .hero p{font-size:18px;color:var(--muted);line-height:1.55}
+  .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-top:18px}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .panel h3{font-family:"Sora";font-size:14px;margin:0 0 14px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+  .ask{display:flex;gap:10px}
+  input[type=text]{flex:1;background:#070d1a;border:1px solid var(--line);border-radius:12px;padding:14px 16px;color:var(--ink);font-family:"Inter";font-size:16px;outline:none}
+  input[type=text]:focus{border-color:var(--teal);box-shadow:0 0 0 3px #2ee6c522}
+  button{font-family:"Sora";font-weight:600;background:linear-gradient(135deg,var(--teal),var(--blue));color:#04111a;border:none;border-radius:12px;padding:0 20px;cursor:pointer;font-size:15px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .qchip{font-size:13px;border:1px solid var(--line);background:#ffffff06;color:var(--muted);padding:7px 12px;border-radius:999px;cursor:pointer}
+  .qchip:hover{color:var(--ink);border-color:var(--teal)}
+  .answer{margin-top:18px;font-size:17px;line-height:1.7;min-height:40px;white-space:pre-wrap}
+  .answer .cite{display:inline-block;background:#2ee6c51a;color:var(--teal);border-radius:6px;padding:1px 7px;font-size:13px;font-family:"Sora";margin:0 2px}
+  .note{font-size:14px;line-height:1.55;padding:13px 14px;border-radius:12px;background:#070d1a;border:1px solid var(--line);margin-bottom:10px}
+  .note .src{font-size:12px;color:var(--teal);font-family:"Sora";letter-spacing:1px}
+  footer{margin-top:36px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--teal);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">R</div><div><h1>Recall</h1><span>Notes Q&A</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Ask your notes<br><b>anything.</b></h2>
+    <p>Natural-language search over your own knowledge — answered with citations, entirely on-device. A lifetime of private notes never leaves your machine, yet it feels like talking to someone who read all of them.</p>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>Ask</h3>
+      <div class="ask">
+        <input type="text" id="q" placeholder="e.g. what did we decide about pricing?" value="What did we decide about pricing and who owns it?" />
+        <button id="askBtn">Ask</button>
+      </div>
+      <div class="chips" id="chips"></div>
+      <div class="answer" id="answer"></div>
+    </div>
+    <div class="panel">
+      <h3>Your notes (local)</h3>
+      <div id="notes"></div>
+    </div>
+  </div>
+
+  <footer>Retrieval + answering both run locally via the <strong>Prompt API</strong>. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'),badgeText=document.getElementById('badgeText');
+  function setStatus(s,p){const l=PromptAPI.statusLabel(s,p);badge.className='badge '+(l.tone==='live'?'live':l.tone==='demo'?'demo':'');badgeText.textContent=l.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  // A tiny local "knowledge base". In a real app this is the user's own data + an on-device index.
+  const KB=[
+    {src:"Standup · Mar 4", text:"Pricing: agreed on three tiers — Free, Pro ($19/mo), Team ($49/seat). Annual gets 2 months free. Dana owns the pricing page and billing rollout."},
+    {src:"Recipe note", text:"The wine reduction pasta: shallots, 1 cup red wine reduced by half, butter, pancetta. Toss with pappardelle."},
+    {src:"1:1 · Feb 28", text:"Maya is taking over onboarding. We deprioritized the mobile app until Q3 to focus on retention."},
+    {src:"Idea dump", text:"Possible names for the side project: Lumen, Driftwood, Kestrel. Leaning Kestrel."},
+    {src:"Standup · Mar 11", text:"Pricing experiment greenlit: test a 14-day Pro trial with no card. Dana to ship behind a flag this week."}
+  ];
+  document.getElementById('notes').innerHTML = KB.map(n=>`<div class="note"><div class="src">${n.src}</div>${n.text}</div>`).join('');
+
+  const suggestions=["What did we decide about pricing and who owns it?","What's happening with the mobile app?","What was that pasta recipe?","What are we calling the side project?"];
+  document.getElementById('chips').innerHTML=suggestions.map(s=>`<span class="qchip">${s}</span>`).join('');
+  document.querySelectorAll('.qchip').forEach(c=>c.onclick=()=>{document.getElementById('q').value=c.textContent;ask();});
+
+  function retrieve(q){
+    const words=q.toLowerCase().split(/\W+/).filter(w=>w.length>3);
+    return KB.map(n=>({n,score:words.reduce((a,w)=>a+(n.text.toLowerCase().includes(w)?1:0),0)}))
+      .sort((a,b)=>b.score-a.score).filter(x=>x.score>0).slice(0,3).map(x=>x.n);
+  }
+
+  async function ask(){
+    const q=document.getElementById('q').value.trim(); if(!q) return;
+    const hits=retrieve(q);
+    const ans=document.getElementById('answer'); ans.textContent='';
+    const context=hits.map((h,i)=>`[${i+1}] (${h.src}) ${h.text}`).join('\n');
+    await PromptAPI.run({
+      system:"You answer questions using ONLY the provided notes. Be concise. Cite sources inline like [1], [2]. If the notes don't contain the answer, say so.",
+      temperature:0.3,
+      prompt:`NOTES:\n${context}\n\nQUESTION: ${q}`,
+      onStatus:setStatus,
+      onChunk:(full)=>{ ans.innerHTML=full.replace(/\[(\d)\]/g,'<span class="cite">[$1]</span>'); },
+      simulate:()=>"You settled on three pricing tiers — Free, Pro at $19/mo, and Team at $49/seat — with annual plans getting two months free [1]. Dana owns the pricing page and billing rollout, and is also shipping a 14-day no-card Pro trial behind a flag [2]."
+    });
+  }
+  document.getElementById('askBtn').onclick=ask;
+  document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter')ask();});
+</script>
+</body>
+</html>

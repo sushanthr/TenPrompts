@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Glimmer — instant inline writing assist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{ --bg:#0c0613; --magenta:#ff2d92; --violet:#9b5cff; --cyan:#22e0ff; --ink:#f3eaff; --muted:#a791c4;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Inter",system-ui,sans-serif;color:var(--ink);background:var(--bg);min-height:100vh;overflow-x:hidden}
+  body:before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(600px 600px at 12% 10%, #ff2d9233, transparent 60%),
+      radial-gradient(700px 700px at 88% 0%, #9b5cff33, transparent 60%),
+      radial-gradient(800px 600px at 50% 120%, #22e0ff22, transparent 60%);}
+  .wrap{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:30px 22px 80px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--magenta),var(--violet));display:grid;place-items:center;font-family:"Space Grotesk";font-weight:700;box-shadow:0 0 30px #ff2d9266}
+  .brand h1{font-family:"Space Grotesk";font-size:22px;margin:0}
+  .brand span{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-size:12px;padding:7px 13px;border-radius:999px;border:1px solid #ffffff1a;display:flex;gap:8px;align-items:center;background:#ffffff08;backdrop-filter:blur(8px)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--cyan);box-shadow:0 0 0 4px #22e0ff33}
+  .badge.demo .dot{background:var(--magenta);box-shadow:0 0 0 4px #ff2d9233}
+  .hero{margin:56px 0 30px;text-align:center}
+  .hero h2{font-family:"Space Grotesk";font-weight:700;font-size:clamp(40px,8vw,76px);line-height:.95;margin:0 0 18px;
+    background:linear-gradient(120deg,#fff 10%,var(--magenta) 45%,var(--violet) 70%,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:19px;color:var(--muted);max-width:54ch;margin:0 auto;line-height:1.55}
+  .editor{margin-top:34px;background:#150c20cc;border:1px solid #ffffff14;border-radius:20px;padding:6px;backdrop-filter:blur(12px);box-shadow:0 40px 90px -40px #000}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;padding:12px 12px 0}
+  .tool{font-size:13px;font-weight:500;border:1px solid #ffffff1f;background:#ffffff0a;color:var(--ink);padding:9px 15px;border-radius:10px;cursor:pointer;transition:.15s}
+  .tool:hover{border-color:var(--violet);background:#9b5cff22;box-shadow:0 0 20px #9b5cff33}
+  .tool .k{color:var(--cyan)}
+  textarea{width:100%;min-height:200px;border:none;outline:none;background:transparent;color:var(--ink);
+    font-family:"Inter";font-size:18px;line-height:1.6;padding:18px;resize:vertical}
+  textarea::placeholder{color:#7a6a96}
+  .status{padding:0 18px 14px;font-size:13px;color:var(--muted);min-height:20px;display:flex;align-items:center;gap:8px}
+  .spin{width:13px;height:13px;border-radius:50%;border:2px solid #ffffff22;border-top-color:var(--magenta);animation:sp .7s linear infinite;display:none}
+  .spin.on{display:inline-block}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .hint{margin-top:18px;font-size:14px;color:var(--muted);text-align:center}
+  footer{margin-top:40px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">✦</div><div><h1>Glimmer</h1><span>Inline assist</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Better words,<br>zero wait.</h2>
+    <p>A drop-in upgrade for any text box. Rephrase, shorten, fix the tone — generated on-device in milliseconds, with no API bill and no spinner of doom. Free for every user, on every keystroke.</p>
+  </div>
+
+  <div class="editor">
+    <div class="toolbar">
+      <button class="tool" data-act="improve">✨ Improve</button>
+      <button class="tool" data-act="shorten">✂️ Shorten</button>
+      <button class="tool" data-act="professional">👔 Professional</button>
+      <button class="tool" data-act="friendly">😊 Friendly</button>
+      <button class="tool" data-act="fix">🩹 Fix grammar</button>
+      <button class="tool" data-act="bullets">• Bullet it</button>
+    </div>
+    <textarea id="text">hey so i wanted to reach out bc we still havent got the files you promised last week and its kind of holding everything up on our end, can you send them asap? thanks</textarea>
+    <div class="status"><span class="spin" id="spin"></span><span id="statusText">Pick an action above to transform your text on-device.</span></div>
+  </div>
+
+  <p class="hint">Try editing the text, then hit a button. Each click rewrites in place — instantly and privately.</p>
+
+  <footer>Powered by the browser’s built-in <strong>Prompt API</strong>. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'), badgeText=document.getElementById('badgeText');
+  function setStatus(state,pct){const s=PromptAPI.statusLabel(state,pct);badge.className='badge '+(s.tone==='live'?'live':s.tone==='demo'?'demo':'');badgeText.textContent=s.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  const ta=document.getElementById('text'), spin=document.getElementById('spin'), st=document.getElementById('statusText');
+  const acts={
+    improve:["Rewrite this to be clearer and more polished while keeping the meaning and the writer's voice. Return only the rewritten text.","I wanted to follow up — we still haven't received the files that were due last week, and it's blocking progress on our side. Could you send them over as soon as possible? Thanks so much."],
+    shorten:["Make this about half as long without losing key information. Return only the text.","We still haven't received last week's files and it's blocking us. Could you send them ASAP? Thanks!"],
+    professional:["Rewrite in a polished, professional business tone. Return only the text.","I'm following up regarding the files originally expected last week. We have not yet received them, and the delay is currently impacting our timeline. Could you please send them at your earliest convenience? Thank you."],
+    friendly:["Rewrite in a warm, friendly, casual tone. Return only the text.","Hey! Just checking in — we're still waiting on those files from last week and they're kind of holding things up on our end. Any chance you could send them our way soon? Really appreciate it! 😊"],
+    fix:["Fix all spelling, grammar and punctuation. Keep the wording and tone as close to the original as possible. Return only the corrected text.","Hey, so I wanted to reach out because we still haven't got the files you promised last week, and it's kind of holding everything up on our end. Can you send them ASAP? Thanks."],
+    bullets:["Convert this into a tight bulleted list of the key points. Return only the list.","• Files promised last week still not received\n• The delay is blocking progress on our end\n• Requesting they be sent as soon as possible"]
+  };
+
+  document.querySelectorAll('.tool').forEach(b=>b.onclick=async()=>{
+    const act=b.dataset.act, cfg=acts[act];
+    const input=ta.value.trim(); if(!input) return;
+    spin.classList.add('on'); st.textContent='Rewriting on-device…';
+    let result='';
+    await PromptAPI.run({
+      system:"You are an inline writing assistant. Apply the requested transformation precisely and return ONLY the resulting text, no preamble, no quotes.",
+      temperature:0.5,
+      prompt:cfg[0]+"\n\nTEXT:\n"+input,
+      onStatus:setStatus,
+      onChunk:(full)=>{ result=full; ta.value=full; ta.scrollTop=ta.scrollHeight; },
+      simulate:()=>cfg[1]
+    });
+    spin.classList.remove('on'); st.textContent='Done — generated on-device. Edit and refine as you like.';
+  });
+</script>
+</body>
+</html>

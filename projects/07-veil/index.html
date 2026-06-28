@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Veil — redact private data before it leaves</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#0a0c0f;--panel:#11151b;--red:#ff4d5e;--green:#37d67a;--cyan:#28c8d8;--ink:#dfe6ee;--muted:#6b7686;--line:#1d242e}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Inter",system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+  body:before{content:"";position:fixed;inset:0;background:radial-gradient(800px 500px at 100% 0,#ff4d5e12,transparent 55%),radial-gradient(700px 500px at 0 100%,#28c8d812,transparent 55%);pointer-events:none}
+  .wrap{position:relative;max-width:1020px;margin:0 auto;padding:28px 22px 70px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:11px;background:linear-gradient(135deg,#1d242e,#11151b);border:1px solid var(--line);display:grid;place-items:center;font-family:"JetBrains Mono";font-weight:700;color:var(--green)}
+  .brand h1{margin:0;font-family:"JetBrains Mono";font-size:21px}
+  .brand span{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-family:"JetBrains Mono";font-size:12px;padding:7px 13px;border-radius:8px;border:1px solid var(--line);display:flex;gap:8px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--green);box-shadow:0 0 0 4px #37d67a33}
+  .badge.demo .dot{background:var(--red);box-shadow:0 0 0 4px #ff4d5e33}
+  .hero{margin:44px 0 22px;max-width:62ch}
+  .hero h2{font-size:clamp(34px,6vw,58px);line-height:1.02;margin:0 0 14px;font-weight:600;letter-spacing:-1px}
+  .hero h2 b{color:var(--green)}
+  .hero p{color:var(--muted);font-size:18px;line-height:1.6}
+  .flow{display:flex;align-items:center;gap:10px;font-family:"JetBrains Mono";font-size:13px;color:var(--muted);margin:14px 0 6px;flex-wrap:wrap}
+  .flow .box{border:1px solid var(--line);border-radius:8px;padding:6px 12px}
+  .flow .ok{color:var(--green);border-color:#37d67a44}
+  .flow .arr{color:var(--cyan)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .card h3{margin:0 0 12px;font-family:"JetBrains Mono";font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  textarea{width:100%;min-height:230px;background:#0a0d11;border:1px solid var(--line);border-radius:10px;color:var(--ink);font-family:"JetBrains Mono";font-size:14px;line-height:1.7;padding:14px;outline:none;resize:vertical}
+  .redacted{min-height:230px;font-family:"JetBrains Mono";font-size:14px;line-height:1.9;white-space:pre-wrap;background:#0a0d11;border:1px solid var(--line);border-radius:10px;padding:14px}
+  mark{background:#000;color:#000;border-radius:3px;padding:1px 6px;position:relative}
+  mark[data-type]{background:var(--red);color:#1a0306;font-weight:700;cursor:help}
+  .go{font-family:"JetBrains Mono";font-weight:700;background:var(--green);color:#062012;border:none;border-radius:10px;padding:13px 22px;font-size:15px;cursor:pointer;margin-top:14px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:13px;color:var(--muted)}
+  .legend b{color:var(--ink)}
+  footer{margin-top:34px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--cyan);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">▮</div><div><h1>Veil</h1><span>PII redactor</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Scrub the secrets <b>before</b> they leave the device.</h2>
+    <p>A local pre-processing layer that finds and removes names, emails, phone numbers, and account details — entirely on-device. The redactor itself never touches the network, which is the only way redaction can actually be trusted.</p>
+    <div class="flow">
+      <span class="box">Raw text</span><span class="arr">→</span>
+      <span class="box ok">Veil (on-device)</span><span class="arr">→</span>
+      <span class="box">Cloud / analytics / LLM</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Input (sensitive)</h3>
+      <textarea id="src">Hi, this is Sarah Chen. My account number is 4471-9920-8834 and I can be reached at sarah.chen@example.com or (415) 555-0198. I live at 42 Marlow Street, San Francisco. My SSN ending is 882 and the issue started after my payment of $2,400 on March 3rd.</textarea>
+      <button class="go" id="go">▮ Redact on-device</button>
+    </div>
+    <div class="card">
+      <h3>Safe to send</h3>
+      <div class="redacted" id="out">Redacted output appears here.</div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <footer>Detection runs locally with the <strong>Prompt API</strong> + structured output. Nothing is uploaded. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'),badgeText=document.getElementById('badgeText');
+  function setStatus(s,p){const l=PromptAPI.statusLabel(s,p);badge.className='badge '+(l.tone==='live'?'live':l.tone==='demo'?'demo':'');badgeText.textContent=l.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  const schema={type:"object",properties:{findings:{type:"array",items:{type:"object",properties:{text:{type:"string"},type:{type:"string"}},required:["text","type"]}}},required:["findings"]};
+
+  function escapeHtml(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+  document.getElementById('go').onclick=async()=>{
+    const src=document.getElementById('src').value;
+    const out=document.getElementById('out'); out.textContent='Scanning…';
+    const raw=await PromptAPI.run({
+      system:"You are a PII detector. Find every piece of personally identifiable information: full names, emails, phone numbers, account/card numbers, physical addresses, SSNs, and exact monetary amounts tied to a person. Return JSON matching the schema. Use type labels like NAME, EMAIL, PHONE, ACCOUNT, ADDRESS, SSN, AMOUNT.",
+      temperature:0.1,
+      schema:schema,
+      prompt:src,
+      onStatus:setStatus,
+      onChunk:()=>{},
+      simulate:()=>JSON.stringify({findings:[
+        {text:"Sarah Chen",type:"NAME"},{text:"4471-9920-8834",type:"ACCOUNT"},
+        {text:"sarah.chen@example.com",type:"EMAIL"},{text:"(415) 555-0198",type:"PHONE"},
+        {text:"42 Marlow Street, San Francisco",type:"ADDRESS"},{text:"882",type:"SSN"},{text:"$2,400",type:"AMOUNT"}
+      ]})
+    });
+
+    let findings=[];
+    try{ findings=JSON.parse(raw).findings||[]; }catch(e){}
+    // Build redacted view.
+    let html=escapeHtml(src);
+    const counts={};
+    findings.sort((a,b)=>b.text.length-a.text.length).forEach(f=>{
+      counts[f.type]=(counts[f.type]||0)+1;
+      const safe=escapeHtml(f.text).replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+      html=html.replace(new RegExp(safe,'g'),`<mark data-type="${f.type}" title="${f.type}">[${f.type}]</mark>`);
+    });
+    out.innerHTML=html;
+    document.getElementById('legend').innerHTML=Object.entries(counts).map(([t,n])=>`<span><b>${n}</b> ${t}</span>`).join('') || '<span>No PII detected.</span>';
+  };
+</script>
+</body>
+</html>

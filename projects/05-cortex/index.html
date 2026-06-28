@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cortex — your on-device study tutor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#13102b;--violet:#7c5cff;--pink:#ff5cb8;--lime:#b6ff5c;--ink:#efeaff;--muted:#a99fce;--card:#1c1840}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Lexend",system-ui,sans-serif;color:var(--ink);min-height:100vh;background:
+    radial-gradient(700px 500px at 0 0,#7c5cff2e,transparent 55%),
+    radial-gradient(700px 500px at 100% 100%,#ff5cb82e,transparent 55%),var(--bg)}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 22px 70px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--violet),var(--pink));display:grid;place-items:center;font-weight:800;font-size:20px}
+  .brand h1{margin:0;font-size:22px;font-weight:800}
+  .brand span{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-size:12px;padding:7px 13px;border-radius:999px;border:1px solid #ffffff1a;display:flex;gap:8px;align-items:center}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--lime);box-shadow:0 0 0 4px #b6ff5c33}
+  .badge.demo .dot{background:var(--pink);box-shadow:0 0 0 4px #ff5cb833}
+  .hero{margin:44px 0 24px;text-align:center}
+  .hero h2{font-weight:800;font-size:clamp(36px,7vw,64px);line-height:1;margin:0 0 14px}
+  .hero h2 span{background:linear-gradient(120deg,var(--violet),var(--pink),var(--lime));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{color:var(--muted);font-size:18px;max-width:54ch;margin:0 auto;line-height:1.55}
+  .panel{background:var(--card);border:1px solid #ffffff12;border-radius:20px;padding:22px;margin-top:20px;box-shadow:0 30px 70px -40px #000}
+  textarea{width:100%;min-height:120px;background:#100d26;border:1px solid #ffffff14;border-radius:14px;color:var(--ink);font-family:"Lexend";font-size:16px;line-height:1.6;padding:14px;outline:none;resize:vertical}
+  .go{font-family:"Lexend";font-weight:700;background:linear-gradient(135deg,var(--violet),var(--pink));color:#fff;border:none;border-radius:14px;padding:13px 22px;font-size:16px;cursor:pointer;margin-top:14px}
+  .flash{perspective:1200px;margin-top:8px}
+  .qbox{background:linear-gradient(135deg,#241f52,#1a1640);border:1px solid #ffffff14;border-radius:18px;padding:24px;min-height:90px}
+  .qlabel{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--lime);margin-bottom:8px}
+  .qtext{font-size:22px;font-weight:500;line-height:1.4}
+  .answer{display:flex;gap:10px;margin-top:14px}
+  input[type=text]{flex:1;background:#100d26;border:1px solid #ffffff14;border-radius:12px;padding:13px 15px;color:var(--ink);font-family:"Lexend";font-size:16px;outline:none}
+  input[type=text]:focus{border-color:var(--violet)}
+  .feedback{margin-top:16px;font-size:17px;line-height:1.65;background:#100d26;border-left:3px solid var(--violet);border-radius:0 12px 12px 0;padding:14px 16px;white-space:pre-wrap;display:none}
+  .feedback.show{display:block}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .mini{font-size:14px;font-weight:600;background:#ffffff10;border:1px solid #ffffff14;color:var(--ink);padding:9px 15px;border-radius:11px;cursor:pointer}
+  .mini:hover{border-color:var(--lime)}
+  footer{margin-top:36px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--lime);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">C</div><div><h1>Cortex</h1><span>Study tutor</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Turn notes into a <span>tutor.</span></h2>
+    <p>Paste your study material. Cortex generates questions, then coaches you through your answers like a patient tutor — giving hints, not just verdicts. Unlimited practice, no subscription, works offline on the bus.</p>
+  </div>
+
+  <div class="panel" id="setup">
+    <textarea id="material">The mitochondria is the organelle responsible for producing most of the cell's ATP through aerobic respiration. It has its own DNA and a double membrane; the inner membrane folds into cristae, which increase surface area for the electron transport chain.</textarea>
+    <button class="go" id="makeBtn">Generate questions →</button>
+  </div>
+
+  <div class="panel flash" id="study" style="display:none">
+    <div class="qbox">
+      <div class="qlabel">Question <span id="qnum">1</span></div>
+      <div class="qtext" id="qtext">—</div>
+    </div>
+    <div class="answer">
+      <input type="text" id="ans" placeholder="Type your answer…" />
+      <button class="go" style="margin:0" id="checkBtn">Check</button>
+    </div>
+    <div class="feedback" id="fb"></div>
+    <div class="row">
+      <button class="mini" id="hintBtn">💡 Hint</button>
+      <button class="mini" id="nextBtn">Next question →</button>
+    </div>
+  </div>
+
+  <footer>Question generation and tutoring run on-device via the <strong>Prompt API</strong>. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'),badgeText=document.getElementById('badgeText');
+  function setStatus(s,p){const l=PromptAPI.statusLabel(s,p);badge.className='badge '+(l.tone==='live'?'live':l.tone==='demo'?'demo':'');badgeText.textContent=l.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  let material='', questions=[], idx=0;
+  const simQs=["What is the main job of the mitochondria in a cell?","Why does the inner membrane fold into cristae?","What unusual feature does the mitochondria have that most organelles don't?"];
+
+  document.getElementById('makeBtn').onclick=async()=>{
+    material=document.getElementById('material').value.trim(); if(!material) return;
+    const raw=await PromptAPI.run({
+      system:"You are a study coach. From the material, write exactly 3 short open-ended quiz questions that test understanding. Return them as a numbered list, one per line, nothing else.",
+      temperature:0.5,
+      prompt:material,
+      onStatus:setStatus,
+      onChunk:()=>{},
+      simulate:()=>"1. "+simQs[0]+"\n2. "+simQs[1]+"\n3. "+simQs[2]
+    });
+    questions=raw.split('\n').map(l=>l.replace(/^\s*\d+[.)]\s*/,'').trim()).filter(Boolean).slice(0,3);
+    if(!questions.length) questions=simQs;
+    idx=0; document.getElementById('setup').style.display='none';
+    document.getElementById('study').style.display='block'; render();
+  };
+
+  function render(){
+    document.getElementById('qnum').textContent=idx+1;
+    document.getElementById('qtext').textContent=questions[idx];
+    document.getElementById('ans').value='';
+    const fb=document.getElementById('fb'); fb.classList.remove('show'); fb.textContent='';
+  }
+
+  async function tutor(mode){
+    const fb=document.getElementById('fb'); fb.classList.add('show'); fb.textContent='';
+    const ans=document.getElementById('ans').value.trim();
+    const sys=mode==='hint'
+      ? "You are a Socratic tutor. Give ONE short nudge toward the answer without revealing it. 1-2 sentences."
+      : "You are a warm Socratic tutor. Evaluate the student's answer to the question, using the material as ground truth. If correct, confirm and add one enriching detail. If partly right, affirm what's right and guide toward what's missing. If wrong, gently correct with a clear explanation. 2-4 sentences. Never harsh.";
+    await PromptAPI.run({
+      system:sys, temperature:0.5,
+      prompt:`MATERIAL:\n${material}\n\nQUESTION: ${questions[idx]}\n\nSTUDENT ANSWER: ${ans||'(blank)'}`,
+      onStatus:setStatus,
+      onChunk:(full)=>{fb.textContent=full;},
+      simulate:()=> mode==='hint'
+        ? "Think about energy — what molecule does the cell use as its main fuel, and which organelle makes most of it?"
+        : (ans.toLowerCase().includes('atp')||ans.toLowerCase().includes('energy')
+            ? "Exactly right — the mitochondria produces most of the cell's ATP, its main energy currency, through aerobic respiration. Bonus: it does this along the inner membrane's cristae."
+            : "Not quite, but you're close to the idea. The mitochondria's main job is producing energy — specifically most of the cell's ATP — through aerobic respiration. Try linking it to the word 'energy' next time.")
+    });
+  }
+  document.getElementById('checkBtn').onclick=()=>tutor('check');
+  document.getElementById('hintBtn').onclick=()=>tutor('hint');
+  document.getElementById('nextBtn').onclick=()=>{idx=(idx+1)%questions.length;render();};
+  document.getElementById('ans').addEventListener('keydown',e=>{if(e.key==='Enter')tutor('check');});
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PlainSpeak — make any text easy to read</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#eafaf1;--green:#10b981;--green2:#059669;--ink:#0f2e22;--card:#ffffff;--muted:#557a6c;--sun:#f5c542}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Outfit",system-ui,sans-serif;background:
+    radial-gradient(900px 500px at 100% -5%,#a7f3d0 0,transparent 55%),
+    radial-gradient(700px 500px at -5% 105%,#fef3c7 0,transparent 55%),var(--bg);color:var(--ink);min-height:100vh}
+  .wrap{max-width:980px;margin:0 auto;padding:30px 22px 80px}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,var(--green),var(--green2));display:grid;place-items:center;color:#fff;font-family:"Outfit";font-weight:800;font-size:22px}
+  .brand h1{font-size:24px;margin:0;font-weight:800}
+  .brand span{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--muted)}
+  .badge{font-size:13px;padding:8px 14px;border-radius:999px;border:1px solid #00000010;display:flex;gap:8px;align-items:center;background:#fff}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--muted)}
+  .badge.live .dot{background:var(--green);box-shadow:0 0 0 4px #10b98133}
+  .badge.demo .dot{background:var(--sun);box-shadow:0 0 0 4px #f5c54233}
+  .hero{margin:46px 0 24px}
+  .hero h2{font-weight:800;font-size:clamp(36px,7vw,66px);line-height:1;margin:0 0 16px;letter-spacing:-1px}
+  .hero h2 u{text-decoration:none;background:linear-gradient(120deg,var(--green),var(--green2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero p{font-size:19px;color:var(--muted);max-width:58ch;line-height:1.55}
+  .levels{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+  .lvl{font-weight:700;font-size:15px;border:2px solid #10b98133;background:#fff;color:var(--ink);padding:11px 18px;border-radius:14px;cursor:pointer;transition:.15s}
+  .lvl.active,.lvl:hover{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 10px 24px -10px #10b981aa}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border-radius:20px;padding:22px;box-shadow:0 20px 50px -28px #0f2e2266;border:1px solid #00000008}
+  .card h3{margin:0 0 12px;font-size:14px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  textarea{width:100%;min-height:240px;border:none;outline:none;resize:vertical;font-family:"Outfit";font-size:17px;line-height:1.6;color:var(--ink)}
+  .result{min-height:240px;font-size:19px;line-height:1.75;white-space:pre-wrap}
+  .meta{display:flex;gap:14px;margin-top:12px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+  .pill{background:#10b9811a;color:var(--green2);padding:4px 11px;border-radius:999px;font-weight:600}
+  button.go{font-family:"Outfit";font-weight:700;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;border:none;border-radius:14px;padding:13px 22px;font-size:16px;cursor:pointer;margin-top:14px}
+  footer{margin-top:40px;text-align:center;font-size:14px;color:var(--muted)}
+  footer a{color:var(--green2)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand"><div class="logo">P</div><div><h1>PlainSpeak</h1><span>Read with ease</span></div></div>
+    <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Checking…</span></div>
+  </div>
+
+  <div class="hero">
+    <h2>Dense text,<br><u>made human.</u></h2>
+    <p>Paste anything tangled — legalese, medical jargon, a bureaucratic form — and get it back in plain language at the reading level you choose. Perfect for ESL readers, accessibility, and private portals you'd never paste into a cloud tool.</p>
+    <div class="levels" id="levels">
+      <button class="lvl active" data-lvl="grade5">Simple (Grade 5)</button>
+      <button class="lvl" data-lvl="grade8">Clear (Grade 8)</button>
+      <button class="lvl" data-lvl="eli5">Explain like I'm 5</button>
+      <button class="lvl" data-lvl="esl">ESL-friendly</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Original</h3>
+      <textarea id="src">Notwithstanding any provision herein to the contrary, the Lessee shall indemnify and hold harmless the Lessor from and against any and all liabilities, claims, damages, and expenses, including reasonable attorneys' fees, arising out of or in connection with the Lessee's use or occupancy of the demised premises, except to the extent such liabilities are attributable to the gross negligence or willful misconduct of the Lessor.</textarea>
+      <button class="go" id="go">Make it readable →</button>
+    </div>
+    <div class="card">
+      <h3>Plain version</h3>
+      <div class="result" id="result">Your easy-to-read version will appear here.</div>
+      <div class="meta" id="meta"></div>
+    </div>
+  </div>
+
+  <footer>Rewritten on-device with the <strong>Prompt API</strong> — safe for private documents. · <a href="../../index.html">← Back to portfolio</a></footer>
+</div>
+
+<script src="../../assets/llm.js"></script>
+<script>
+  const badge=document.getElementById('badge'),badgeText=document.getElementById('badgeText');
+  function setStatus(s,p){const l=PromptAPI.statusLabel(s,p);badge.className='badge '+(l.tone==='live'?'live':l.tone==='demo'?'demo':'');badgeText.textContent=l.text;}
+  PromptAPI.availability().then(a=>setStatus(a==='unavailable'?'demo':'live'));
+
+  let level='grade5';
+  const levelMeta={
+    grade5:{label:"Rewrite the text at a 5th-grade reading level. Use short sentences and everyday words. Keep every important fact. Return only the rewritten text.",pill:"Grade 5"},
+    grade8:{label:"Rewrite the text at a clear 8th-grade reading level. Keep all facts accurate. Return only the rewritten text.",pill:"Grade 8"},
+    eli5:{label:"Explain what this text means as if to a curious 5-year-old, using a simple everyday analogy. Keep it accurate. Return only the explanation.",pill:"ELI5"},
+    esl:{label:"Rewrite for an English-as-a-second-language reader: simple vocabulary, short sentences, no idioms. Keep all facts. Return only the rewritten text.",pill:"ESL"}
+  };
+  const sim={
+    grade5:"You promise to protect the landlord. If someone gets hurt or something goes wrong because of how you use the place, you will pay for it — including the landlord's lawyer costs. But if the problem happens because the landlord was very careless or did something wrong on purpose, then you do not have to pay for that part.",
+    grade8:"As the tenant, you agree to cover the landlord for any claims, damages, or legal costs that come from your use of the property. The one exception: if the harm was caused by the landlord's serious carelessness or intentional wrongdoing, you're not responsible for that.",
+    eli5:"Imagine you borrow a friend's treehouse. If you make a mess or break something while you're up there, you promise to clean it up and pay for it. But if your friend left a broken board on purpose and that's what caused the trouble, then it's their fault, not yours.",
+    esl:"You are the tenant. You agree to pay for any problems that happen because of how you use the place. This includes paying for the landlord's lawyer. But there is one exception. If the problem happens because the landlord is very careless or does something wrong on purpose, you do not pay for that."
+  };
+  document.querySelectorAll('.lvl').forEach(b=>b.onclick=()=>{document.querySelectorAll('.lvl').forEach(x=>x.classList.remove('active'));b.classList.add('active');level=b.dataset.lvl;});
+
+  function readingStats(t){const words=t.trim().split(/\s+/).length;const sents=(t.match(/[.!?]/g)||[]).length||1;return {words,avg:(words/sents).toFixed(1)};}
+
+  document.getElementById('go').onclick=async()=>{
+    const src=document.getElementById('src').value.trim(); if(!src) return;
+    const res=document.getElementById('result'); res.textContent='';
+    document.getElementById('meta').innerHTML='';
+    await PromptAPI.run({
+      system:"You make complicated text easy to understand. Never lose factual accuracy. Return only the rewritten text — no preamble.",
+      temperature:0.4,
+      prompt:levelMeta[level].label+"\n\nTEXT:\n"+src,
+      onStatus:setStatus,
+      onChunk:(full)=>{res.textContent=full;},
+      simulate:()=>sim[level]
+    });
+    const st=readingStats(res.textContent);
+    document.getElementById('meta').innerHTML=`<span class="pill">${levelMeta[level].pill}</span><span>${st.words} words</span><span>~${st.avg} words/sentence</span>`;
+  };
+</script>
+</body>
+</html>
